@@ -1,5 +1,5 @@
 <template>
-    <div class="page">
+    <div class="page row mx-auto">
         <div class="col-md-10">
             <InputSearch v-model="searchText" />
         </div>
@@ -30,16 +30,14 @@
                 </h4>
                 <ContactCard :contact="activeContact" />
                 <router-link v-if="activeContact && activeContact._id" :to="{
-                        name: 'contact.edit',
-                        params: { id: activeContact._id },
-                    }
-                    ">
+                    name: 'contact.edit',
+                    params: { id: activeContact._id },
+                }">
                     <span class="mt-2 badge badge-warning">
                         <i class="fas fa-edit"></i> Hiệu chỉnh</span>
                 </router-link>
             </div>
         </div>
-
     </div>
 </template>
 <script>
@@ -47,6 +45,8 @@ import ContactCard from "@/components/ContactCard.vue";
 import InputSearch from "@/components/InputSearch.vue";
 import ContactList from "@/components/ContactList.vue";
 import ContactService from "@/services/contact.service";
+import Swal from 'sweetalert2';
+
 export default {
     components: {
         ContactCard,
@@ -91,8 +91,21 @@ export default {
         },
     },
     methods: {
+        // loading
         async retrieveContacts() {
             try {
+                let timerInterval = 500;
+                Swal.fire({
+                    title: "Loading...",
+                    timer: 500,
+                    timerProgressBar: true,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                    willClose: () => {
+                        clearInterval(timerInterval);
+                    }
+                })
                 this.contacts = await ContactService.getAll();
             } catch (error) {
                 console.log(error);
@@ -103,23 +116,45 @@ export default {
             this.activeIndex = -1;
         },
         async removeAllContacts() {
-            if (confirm("Bạn muốn xóa tất cả Liên hệ?")) {
+            const isConfirmed = await Swal.fire({
+                title: 'Bạn muốn xóa tất cả Liên hệ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy',
+            });
+            if (isConfirmed.isConfirmed) {
                 try {
                     await ContactService.deleteAll();
                     this.refreshList();
+
+                    await Swal.fire({
+                        title: 'Thành công',
+                        text: 'Đã xóa tất cả liên hệ!',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                    });
                 } catch (error) {
                     console.log(error);
+                    Swal.fire({
+                        title: 'Lỗi',
+                        text: 'Đã xảy ra lỗi khi xóa liên hệ.',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 1000,
+                    });
                 }
             }
-        },
-        goToAddContact() {
-            this.$router.push({ name: "contact.add" });
         },
     },
     mounted() {
         this.refreshList();
     },
 };
+
 </script>
 <style scoped>
 .page {
