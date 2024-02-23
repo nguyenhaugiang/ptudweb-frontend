@@ -15,6 +15,7 @@ const routes = [
     path: "/contacts/:id",
     name: "contact.edit",
     component: () => import("@/views/ContactEdit.vue"),
+    props: true,
   },
   {
     path: "/contacts/add",

@@ -94,8 +94,9 @@ export default {
         // loading
         async retrieveContacts() {
             try {
+                this.contacts = await ContactService.getAll();
                 let timerInterval = 500;
-                Swal.fire({
+                await Swal.fire({
                     title: "Loading...",
                     timer: 500,
                     timerProgressBar: true,
@@ -106,7 +107,6 @@ export default {
                         clearInterval(timerInterval);
                     }
                 })
-                this.contacts = await ContactService.getAll();
             } catch (error) {
                 console.log(error);
             }
